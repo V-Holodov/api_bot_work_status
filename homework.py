@@ -14,10 +14,9 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-
+PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-PRAKTIKUM_TOKEN = os.getenv('PRAKTIKUM_TOKEN')
 
 
 def parse_homework_status(homework):
@@ -53,17 +52,22 @@ def main():
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
+            try:
+                new_homework['homeworks'][0]
+            except KeyError:
+                logger.error('Данные не получены')
             if new_homework.get('homeworks'):
                 send_message(
                     parse_homework_status(new_homework.get('homeworks')[0]),
                     bot
                     )
                 logger.info('Сообщение отправлено')
+            else:
+                logger.info('Работа не проверена')
             current_timestamp = new_homework.get(
                 'current_date', current_timestamp
                 )
-            logger.info('Работа не проверена')
-            time.sleep(5)
+            time.sleep(1200)
 
         except Exception as e:
             logger.error(f'Бот столкнулся с ошибкой: {e}')
