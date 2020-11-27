@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import json
 
 import requests
 import telegram
@@ -34,11 +35,17 @@ def parse_homework_status(homework):
 def get_homework_statuses(current_timestamp):
     params = {'from_date': current_timestamp}
     headers = {'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'}
-    homework_statuses = requests.get(
-        'https://praktikum.yandex.ru/api/user_api/homework_statuses/',
-        params=params,
-        headers=headers)
-    return homework_statuses.json()
+    try:
+        homework_statuses = requests.get(
+            'https://praktikum.yandex.ru/api/user_api/homework_statuses/',
+            params=params,
+            headers=headers)
+        response = homework_statuses.json()
+        return response
+    except ConnectionError:
+        logger.error('ошибка соединения')
+    except json.JSONDecodeError:
+        logger.error('ошибка файла JSON')
 
 
 def send_message(message, bot_client):
@@ -53,7 +60,7 @@ def main():
         try:
             new_homework = get_homework_statuses(current_timestamp)
             try:
-                new_homework['homeworks'][0]
+                new_homework['homeworks']
             except KeyError:
                 logger.error('Данные не получены')
             if new_homework.get('homeworks'):
