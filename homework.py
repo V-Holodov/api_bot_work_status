@@ -1,9 +1,16 @@
+import logging
 import os
 import time
 
 import requests
 import telegram
 from dotenv import load_dotenv
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=('%(asctime)s: [%(levelname)s]: %(name)s: %(message)s')
+    )
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -27,7 +34,7 @@ def parse_homework_status(homework):
 
 def get_homework_statuses(current_timestamp):
     params = {'from_date': current_timestamp}
-    headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+    headers = {'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'}
     homework_statuses = requests.get(
         'https://praktikum.yandex.ru/api/user_api/homework_statuses/',
         params=params,
@@ -51,13 +58,15 @@ def main():
                     parse_homework_status(new_homework.get('homeworks')[0]),
                     bot
                     )
+                logger.info('Сообщение отправлено')
             current_timestamp = new_homework.get(
                 'current_date', current_timestamp
                 )
-            time.sleep(1200)
+            logger.info('Работа не проверена')
+            time.sleep(5)
 
         except Exception as e:
-            print(f'Бот столкнулся с ошибкой: {e}')
+            logger.error(f'Бот столкнулся с ошибкой: {e}')
             time.sleep(5)
 
 
