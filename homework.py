@@ -21,15 +21,20 @@ CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 
 def parse_homework_status(homework):
-    homework_name = homework['homework_name']
-    if homework['status'] == 'rejected':
-        verdict = 'К сожалению в работе нашлись ошибки.'
-    else:
-        verdict = (
-            'Ревьюеру всё понравилось, '
-            'можно приступать к следующему уроку.'
-            )
-    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+    try:
+        homework_name = homework['homework_name']
+        if homework['status'] == 'rejected':
+            verdict = 'К сожалению в работе нашлись ошибки.'
+        elif homework['status'] == 'approved':
+            verdict = (
+                'Ревьюеру всё понравилось, '
+                'можно приступать к следующему уроку.'
+                )
+        else:
+            logger.info('Cтатус домашней работы неизвестного типа')
+        return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+    except KeyError as e:
+        logger.error(f'Сервис не вернул ожидаемый ответ: {e}')
 
 
 def get_homework_statuses(current_timestamp):
