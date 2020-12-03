@@ -18,6 +18,8 @@ load_dotenv()
 PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+SLEEP = 1200
 
 
 def parse_homework_status(homework):
@@ -42,15 +44,15 @@ def get_homework_statuses(current_timestamp):
     headers = {'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'}
     try:
         homework_statuses = requests.get(
-            'https://praktikum.yandex.ru/api/user_api/homework_statuses/',
+            URL,
             params=params,
             headers=headers)
         response = homework_statuses.json()
         return response
-    except ConnectionError:
-        logger.error('ошибка соединения')
-    except json.JSONDecodeError:
-        logger.error('ошибка файла JSON')
+    except RequestException as e:
+        logger.error(f'ошибка соединения - {e}')
+    except json.JSONDecodeError as e:
+        logger.error(f'ошибка файла JSON - {e}')
 
 
 def send_message(message, bot_client):
@@ -59,18 +61,14 @@ def send_message(message, bot_client):
 
 def main():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    current_timestamp = int(time.time())
+    current_timestamp = 1606473834
 
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
-            try:
-                new_homework['homeworks']
-            except KeyError:
-                logger.error('Данные не получены')
-            if new_homework.get('homeworks'):
+            if new_homework['homeworks']:
                 send_message(
-                    parse_homework_status(new_homework.get('homeworks')[0]),
+                    parse_homework_status(new_homework['homeworks'][0]),
                     bot
                     )
                 logger.info('Сообщение отправлено')
@@ -79,7 +77,7 @@ def main():
             current_timestamp = new_homework.get(
                 'current_date', current_timestamp
                 )
-            time.sleep(1200)
+            time.sleep(SLEEP)
 
         except Exception as e:
             logger.error(f'Бот столкнулся с ошибкой: {e}')
