@@ -19,7 +19,8 @@ PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
-SLEEP = 1200
+SLEEP_GET = 1200
+SLEEP_ERROR = 5
 
 
 def parse_homework_status(homework):
@@ -61,12 +62,12 @@ def send_message(message, bot_client):
 
 def main():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    current_timestamp = int(time.time())
+    current_timestamp = 1606992234
 
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
-            if new_homework['homeworks']:
+            if new_homework.get('homeworks'):
                 send_message(
                     parse_homework_status(new_homework['homeworks'][0]),
                     bot
@@ -75,13 +76,13 @@ def main():
             else:
                 logger.info('Работа не проверена')
             current_timestamp = new_homework.get(
-                'current_date', current_timestamp
+                'current_date', int(time.time())
                 )
-            time.sleep(SLEEP)
+            time.sleep(SLEEP_GET)
 
         except Exception as e:
             logger.error(f'Бот столкнулся с ошибкой: {e}')
-            time.sleep(5)
+            time.sleep(SLEEP_ERROR)
 
 
 if __name__ == '__main__':
