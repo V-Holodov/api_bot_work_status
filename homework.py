@@ -74,7 +74,7 @@ def main():
                     )
                 logger.info('Сообщение отправлено')
             else:
-                logger.info('Работа не проверена')
+                logger.info('Работа ещё не проверена')
             current_timestamp = new_homework.get(
                 'current_date', int(time.time())
                 )
